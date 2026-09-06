@@ -1,0 +1,93 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #070809;
+}
+
+.container {
+    max-width: 900px;
+    margin: 50px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 16px;
+}
+
+h1 {
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #666;
+}
+
+textarea {
+    width: 100%;
+    min-height: 180px;
+    margin: 20px 0;
+    padding: 15px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    resize: vertical;
+}
+
+button {
+    padding: 12px 18px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#analyzeButton {
+    width: 100%;
+    margin-top: 15px;
+    font-size: 16px;
+    background-color: #070809;
+    color: white;
+}
+
+.samples {
+    display: flex;
+    gap: 10px;
+}
+
+.scores {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.card {
+    margin-top: 15px;
+    padding: 18px;
+    background: #f7f7f7;
+    border-radius: 10px;
+}
+
+.card strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.error {
+    color: #c00;
+}
+
+.hidden {
+    display: none;
+}
+
+@media (max-width: 700px) {
+    .scores {
+        grid-template-columns: 1fr;
+    }
+
+    .container {
+        margin: 10px;
+    }
+}

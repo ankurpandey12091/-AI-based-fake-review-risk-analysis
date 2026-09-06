@@ -1,0 +1,2 @@
+model,embedding_model,accuracy,precision,recall,f1_score,roc_auc,dataset_size,train_size,validation_size,test_size
+Sentence Transformers + Logistic Regression,sentence-transformers/all-MiniLM-L6-v2,0.7708333333333334,0.768595041322314,0.775,0.7717842323651453,0.8584027777777778,1596,1116,240,240

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fake Review Monitor</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+<div class="container">
+    <h1>AI Fake Review Monitor</h1>
+    <p class="subtitle">
+        AI-based fake review risk analysis
+        <br>
+        review paste in box
+    </p>
+
+    <textarea
+        id="review"
+        placeholder="Enter a product review here..."
+    ></textarea>
+
+    <div class="samples">
+        <button onclick="useSample('genuine')">
+            Genuine Sample
+        </button>
+
+        <button onclick="useSample('fake')">
+            Suspicious Sample
+        </button>
+    </div>
+
+    <button id="analyzeButton" onclick="analyzeReview()">
+        Analyze Review
+    </button>
+
+    <p id="loading" class="hidden">Analyzing...</p>
+    <p id="error" class="error"></p>
+
+    <div id="result" class="result hidden">
+
+        <h2 id="prediction"></h2>
+
+        <div class="card">
+            <strong>Fake Probability</strong>
+            <span id="fakeProbability"></span>
+        </div>
+
+        <div class="card">
+            <strong>Risk Level</strong>
+            <span id="riskLevel"></span>
+        </div>
+
+        <div class="scores">
+            <div class="card">
+                <strong>ML Probability</strong>
+                <span id="mlProbability"></span>
+            </div>
+
+            <div class="card">
+                <strong>Semantic Probability</strong>
+                <span id="semanticProbability"></span>
+            </div>
+
+            <div class="card">
+                <strong>Heuristic Score</strong>
+                <span id="heuristicScore"></span>
+            </div>
+        </div>
+
+        <div class="card">
+            <strong>Reasons</strong>
+            <ul id="reasons"></ul>
+        </div>
+
+    </div>
+</div>
+
+<script src="/static/js/app.js"></script>
+
+</body>
+</html>

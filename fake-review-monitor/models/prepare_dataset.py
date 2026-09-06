@@ -1,0 +1,82 @@
+"""Prepare a clearly separated, hand-labeled demo dataset for ML testing."""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import pandas as pd
+
+
+DEFAULT_INPUT_PATH = Path("data/cleaned_reviews.csv")
+DEFAULT_OUTPUT_PATH = Path("data/labeled_reviews.csv")
+REQUIRED_SOURCE_COLUMNS = {"review_text", "processed_text"}
+OUTPUT_COLUMNS = ["review_text", "processed_text", "label"]
+
+# These labels are deliberately written by hand for pipeline testing. They are
+# not predictions about the unlabeled source dataset.
+DEMO_REVIEWS = [
+    ("The battery lasted three days with normal use, just as described.", "battery lasted three days normal use described", 0),
+    ("The package arrived on Tuesday and the charger works perfectly.", "package arrived tuesday charger works perfectly", 0),
+    ("It is a little smaller than I expected, but the measurements were listed accurately.", "little smaller expected measurements listed accurately", 0),
+    ("Customer support replaced the damaged part within a week.", "customer support replaced damaged part within week", 0),
+    ("The fabric feels sturdy and the stitching has held up after several washes.", "fabric feels sturdy stitching held several washes", 0),
+    ("Setup took about ten minutes and the instructions were clear.", "setup took ten minutes instructions clear", 0),
+    ("This pan heats evenly and cleans easily with warm water.", "pan heats evenly cleans easily warm water", 0),
+    ("The headphones are comfortable, although the microphone is average.", "headphones comfortable although microphone average", 0),
+    ("I bought this after comparing the dimensions and it fits my shelf.", "bought after comparing dimensions fits shelf", 0),
+    ("The replacement filter matched the model number and installed without trouble.", "replacement filter matched model number installed without trouble", 0),
+    ("The color is slightly different in person, but the product is functional.", "color slightly different person product functional", 0),
+    ("After two weeks of use, the zipper and handle are still working well.", "after two weeks use zipper handle still working well", 0),
+    ("AMAZING!!! Best product EVER!!! Buy this now and you will love it 5 stars!!!", "amazing best product ever buy now love five stars", 1),
+    ("This changed my life completely. Everyone must buy it immediately!!!", "changed life completely everyone must buy immediately", 1),
+    ("Five stars five stars five stars, unbelievable item, highly highly recommended.", "five stars five stars five stars unbelievable item highly recommended", 1),
+    ("I received this today and it is already the greatest purchase of my life.", "received today already greatest purchase life", 1),
+    ("Best seller ever, perfect perfect perfect, no negatives at all!!!!", "best seller ever perfect perfect perfect no negatives", 1),
+    ("Buy now!!! This product is incredible and deserves 10 stars from everyone.", "buy now product incredible deserves ten stars everyone", 1),
+    ("Five minutes after opening the box I knew this was perfect. Highly recommend!!!", "five minutes opening box knew perfect highly recommend", 1),
+    ("The seller is the best and this is the best thing I have ever purchased.", "seller best best thing ever purchased", 1),
+    ("Absolutely flawless item, super fast, super amazing, must have for everybody!!!", "absolutely flawless item super fast super amazing must have", 1),
+    ("I cannot say enough good things: perfect quality, perfect price, perfect service!", "cannot say enough good things perfect quality price service", 1),
+    ("This wonderful product is a miracle and solved every problem instantly.", "wonderful product miracle solved every problem instantly", 1),
+    ("Do not think twice, just purchase it now because it is truly number one.", "do not think twice purchase now truly number one", 1),
+]
+
+
+def prepare_demo_dataset(
+    input_path: str | Path = DEFAULT_INPUT_PATH,
+    output_path: str | Path = DEFAULT_OUTPUT_PATH,
+) -> pd.DataFrame:
+    """Validate the source and save hand-labeled demo reviews separately."""
+    input_path = Path(input_path)
+    output_path = Path(output_path)
+    if not input_path.is_file():
+        raise FileNotFoundError(f"Source cleaned dataset not found: {input_path}")
+
+    source = pd.read_csv(input_path)
+    missing_columns = REQUIRED_SOURCE_COLUMNS - set(source.columns)
+    if missing_columns:
+        missing = ", ".join(sorted(missing_columns))
+        raise ValueError(f"Source dataset is missing required column(s): {missing}")
+
+    labeled = pd.DataFrame(DEMO_REVIEWS, columns=OUTPUT_COLUMNS)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    labeled.to_csv(output_path, index=False)
+    return labeled
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Create a hand-labeled demo dataset for ML testing.")
+    parser.add_argument("--input", default=str(DEFAULT_INPUT_PATH), help="Existing cleaned dataset to validate")
+    parser.add_argument("--output", default=str(DEFAULT_OUTPUT_PATH), help="Labeled demo dataset output path")
+    args = parser.parse_args()
+
+    labeled = prepare_demo_dataset(args.input, args.output)
+    counts = labeled["label"].value_counts().sort_index()
+    print(f"Genuine samples (0): {int(counts.get(0, 0))}")
+    print(f"Fake samples (1): {int(counts.get(1, 0))}")
+    print(f"Saved {len(labeled)} labeled demo reviews to {args.output}")
+
+
+if __name__ == "__main__":
+    main()
