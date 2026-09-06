@@ -14,10 +14,10 @@ function useSample(type) {
 
 async function analyzeReview() {
     const review = document.getElementById("review").value.trim();
-
     const error = document.getElementById("error");
     const result = document.getElementById("result");
     const loading = document.getElementById("loading");
+    const analyzeButton = document.getElementById("analyzeButton");
 
     error.textContent = "";
 
@@ -28,58 +28,161 @@ async function analyzeReview() {
 
     loading.classList.remove("hidden");
     result.classList.add("hidden");
+    analyzeButton.disabled = true;
 
     try {
         const response = await fetch("/api/analyze", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Accept": "application/json"
             },
             body: JSON.stringify({
                 review: review
             })
         });
 
-        const data = await response.json();
+        // Read the raw response first.
+        const rawText = await response.text();
 
-        if (!response.ok || !data.success) {
-            throw new Error(data.error || "Analysis failed");
+        // Check the HTTP status.
+        if (!response.ok) {
+            let serverMessage = "";
+
+            try {
+                const errorData = JSON.parse(rawText);
+
+                if (errorData && errorData.error) {
+                    serverMessage = errorData.error;
+                }
+            } catch (_) {
+                serverMessage = rawText.substring(0, 300);
+            }
+
+            throw new Error(
+                `Server error (${response.status})` +
+                (serverMessage ? `: ${serverMessage}` : "")
+            );
+        }
+
+        // Parse only after checking the raw response.
+        let data;
+
+        try {
+            data = JSON.parse(rawText);
+        } catch (_) {
+            console.error("Non-JSON API response:", rawText);
+
+            throw new Error(
+                "The server did not return JSON. " +
+                "Please check the Render deployment and API route."
+            );
+        }
+
+        // Validate the API envelope.
+        if (!data || data.success !== true) {
+            throw new Error(
+                data && data.error
+                    ? data.error
+                    : "Analysis failed"
+            );
         }
 
         const resultData = data.result;
 
+        if (!resultData) {
+            throw new Error(
+                "The server returned an incomplete analysis response."
+            );
+        }
+
+        // ----------------------------------------------------
+        // Prediction
+        // ----------------------------------------------------
+
         document.getElementById("prediction").textContent =
-            "Prediction: " + resultData.prediction.toUpperCase();
+            "Prediction: " +
+            String(resultData.prediction || "")
+                .toUpperCase();
+
+        // ----------------------------------------------------
+        // Fake probability
+        // ----------------------------------------------------
 
         document.getElementById("fakeProbability").textContent =
-            (resultData.fake_probability * 100).toFixed(2) + "%";
+            formatProbability(resultData.fake_probability);
+
+        // ----------------------------------------------------
+        // Risk level
+        // ----------------------------------------------------
 
         document.getElementById("riskLevel").textContent =
-            resultData.risk_level.toUpperCase();
+            String(resultData.risk_level || "")
+                .toUpperCase();
+
+        // ----------------------------------------------------
+        // Individual scores
+        // ----------------------------------------------------
 
         document.getElementById("mlProbability").textContent =
-            (resultData.ml_probability * 100).toFixed(2) + "%";
+            formatProbability(resultData.ml_probability);
 
         document.getElementById("semanticProbability").textContent =
-            (resultData.semantic_probability * 100).toFixed(2) + "%";
+            formatProbability(resultData.semantic_probability);
 
         document.getElementById("heuristicScore").textContent =
-            (resultData.heuristic_score * 100).toFixed(2) + "%";
+            formatProbability(resultData.heuristic_score);
+
+        // ----------------------------------------------------
+        // Reasons
+        // ----------------------------------------------------
 
         const reasonsList = document.getElementById("reasons");
         reasonsList.innerHTML = "";
 
-        resultData.reasons.forEach(reason => {
-            const li = document.createElement("li");
-            li.textContent = reason;
-            reasonsList.appendChild(li);
-        });
+        const reasons = Array.isArray(resultData.reasons)
+            ? resultData.reasons
+            : [];
 
+        if (reasons.length === 0) {
+            const li = document.createElement("li");
+            li.textContent = "No specific reasons were returned.";
+            reasonsList.appendChild(li);
+        } else {
+            reasons.forEach((reason) => {
+                const li = document.createElement("li");
+                li.textContent = String(reason);
+                reasonsList.appendChild(li);
+            });
+        }
+
+        // Show result.
         result.classList.remove("hidden");
 
     } catch (errorObject) {
-        error.textContent = errorObject.message;
+        console.error("Analysis error:", errorObject);
+
+        error.textContent =
+            errorObject instanceof Error
+                ? errorObject.message
+                : "An unexpected error occurred.";
+
     } finally {
         loading.classList.add("hidden");
+        analyzeButton.disabled = false;
     }
+}
+
+
+/**
+ * Convert a probability from 0-1 into a percentage string.
+ */
+function formatProbability(value) {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+        return "N/A";
+    }
+
+    return (numericValue * 100).toFixed(2) + "%";
 }
