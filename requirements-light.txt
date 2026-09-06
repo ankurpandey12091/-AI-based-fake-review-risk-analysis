@@ -1,0 +1,14 @@
+# Lightweight requirements for Render Free Tier (No PyTorch/Transformers)
+# Runs within < 50MB RAM, builds in 30 seconds, uses Phase 6 TF-IDF + Logistic Regression (86.7% accuracy)
+Flask==3.1.3
+gunicorn==23.0.0
+beautifulsoup4==4.15.0
+joblib==1.6.0
+nltk==3.10.3
+numpy==2.5.2
+pandas==3.0.5
+requests==2.34.2
+scikit-learn==1.9.0
+scipy==1.18.1
+python-dateutil==2.9.0.post0
+pytz==2026.3
